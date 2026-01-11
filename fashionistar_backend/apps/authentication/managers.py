@@ -1,17 +1,22 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import gettext_lazy as _
-from django.db.models import Q  # Import Q object
+from django.db.models import Q
+from asgiref.sync import sync_to_async
 
 class CustomUserManager(BaseUserManager):
     """
     Custom user model manager where email or phone is the unique identifiers
     for authentication instead of usernames.
+    Supports both Sync and Async operations.
     """
+    
+    # --- SYNC METHODS ---
+    
     def create_user(self, email=None, phone=None, password=None, **extra_fields):
         if not email and not phone:
             raise ValueError(_('Either an email address or phone number must be set'))
 
-        email = self.normalize_email(email) if email else None  # Ensure None instead of empty string
+        email = self.normalize_email(email) if email else None
 
         user = self.model(email=email, phone=phone, **extra_fields)
         user.set_password(password)
@@ -38,12 +43,30 @@ class CustomUserManager(BaseUserManager):
         Override get_by_natural_key to allow authentication by either email or phone.
         """
         try:
-            return self.get(Q(email=identifier) | Q(phone=identifier))  # Use Q object for OR query
+            return self.get(Q(email=identifier) | Q(phone=identifier))
         except self.model.DoesNotExist:
-            raise self.model.DoesNotExist(_('No user with this email or phone number.')) # Raise DoesNotExist with a helpful message
-        
+            raise self.model.DoesNotExist(_('No user with this email or phone number.'))
 
+    # --- ASYNC METHODS ---
 
+    async def acreate_user(self, email=None, phone=None, password=None, **extra_fields):
+        """
+        Async wrapper for create_user.
+        """
+        return await sync_to_async(self.create_user)(email, phone, password, **extra_fields)
 
+    async def acreate_superuser(self, email=None, phone=None, password=None, **extra_fields):
+        """
+        Async wrapper for create_superuser.
+        """
+        return await sync_to_async(self.create_superuser)(email, phone, password, **extra_fields)
 
-
+    async def aget_by_natural_key(self, identifier):
+        """
+        Async wrapper for get_by_natural_key.
+        """
+        try:
+            return await self.aget(Q(email=identifier) | Q(phone=identifier))
+        except self.model.DoesNotExist:
+             # Re-raise to match sync behavior structure if needed or let standard ORM error propagate
+             raise self.model.DoesNotExist(_('No user with this email or phone number.'))
