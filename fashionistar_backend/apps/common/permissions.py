@@ -6,7 +6,7 @@ to enforce access control in the modular monolith architecture. These permission
 are designed to be async-compatible for future Django versions and include
 robust error handling and logging for maintainability.
 """
-
+# apps/common/permissions.py
 from rest_framework.permissions import BasePermission
 from django.contrib.auth.models import AnonymousUser
 from asgiref.sync import sync_to_async
@@ -35,6 +35,7 @@ class IsVendor(BasePermission):
         Check if the user has vendor permissions.
 
         This method verifies the user's role and logs the access attempt
+
         for security purposes.
 
         Args:

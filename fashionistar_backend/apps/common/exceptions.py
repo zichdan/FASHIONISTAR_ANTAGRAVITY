@@ -7,7 +7,15 @@ logger = logging.getLogger('application')
 
 def custom_exception_handler(exc, context):
     """
-    Global exception handler for JSON formatted error responses.
+    Global exception handler for JSON-formatted error responses.
+    Handles both expected and unexpected exceptions with logging.
+    
+    Args:
+        exc: The exception instance.
+        context: The context dictionary.
+        
+    Returns:
+        Response: A standardized JSON error response.
     """
     try:
         response = exception_handler(exc, context)

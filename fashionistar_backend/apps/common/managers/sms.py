@@ -1,9 +1,15 @@
+# apps/common/managers/sms
 import logging
 from django.conf import settings
 from twilio.rest import Client
 from asgiref.sync import sync_to_async
 
 application_logger = logging.getLogger('application')
+
+
+
+
+
 
 
 class SMSManagerError(Exception):
